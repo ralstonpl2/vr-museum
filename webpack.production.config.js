@@ -25,7 +25,10 @@ var config = {
     loaders: [
       {
         test: /\.js$/,
-        loader: 'babel?presets[]=react,presets[]=es2015',
+        loader: 'babel-loader',
+        query: {
+          presets: ['es2015', 'react']
+        },
         exclude: '/node_modules'
       },
       //This converts our .css into JS

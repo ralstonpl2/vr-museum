@@ -18,8 +18,7 @@ import Floor from './public/components/Floor';
 import SphereClickPads from './public/components/SphereClickPad'
 import Placards from './public/components/Placards';
 import io from 'socket.io-client/socket.io';
-
-var socket = io();     
+   
 
 class BoilerplateScene extends Component {
 
@@ -34,142 +33,17 @@ class BoilerplateScene extends Component {
     let pos3 = position[2];
     this.setState({ cameraPos: [pos1, pos2, pos3]});
 
-  }
-
-  componentDidMount(){
-    // testing socket io connection
-    socket.on('news', (data) => {
-        console.log(data);
-        socket.emit('my other event', {
-            my: 'Im out here'
-        });
-    })
-
-
-    var userOneVoice = document.getElementById('userOneVoice');
-    var userTwoVoice = document.getElementById('userTwoVoice');
-    var SIGNAL_ROOM = 'signal_room';
-    var ROOM = 'chat'
-    var rtcPeerConn; 
-
-    var configuration = {
-      'iceServers': [{
-        'url': 'stun:stun.l.google.com:19302'
-      }]
-    };
-
-    
-    // join the rooms
-    socket.emit('ready', {
-        "chat_room": ROOM,
-        "signal_room": SIGNAL_ROOM
-    });
-    // emit signal to start call
-    socket.emit('signal', {
-        "type": "user_here", 
-        "message": 'Are you ready for a call?', 
-        "room": SIGNAL_ROOM
-    });
-
-    socket.on('signaling_message', function(data){
-        console.log('data in signaling_message', data.type);
-        if (!rtcPeerConn) {
-            startSignaling();
-        } 
-        if (data.type !== "user_here") {
-            var message = JSON.parse(data.message);
-            if (message.sdp) {
-                rtcPeerConn.setRemoteDescription(new RTCSessionDescription(message.sdp), function(){
-                    if (rtcPeerConn.remoteDescription.type === 'offer') {
-                        rtcPeerConn.createAnswer(sendLocalDesc, logError);
-                    }
-                }, logError)
-            }else{
-                rtcPeerConn.addIceCandidate(new RTCIceCandidate(message.candidate));
-            }
-        }
-    });
-
-    function startSignaling(){
-        console.log("startSignaling signaling....");
-        rtcPeerConn = new webkitRTCPeerConnection(configuration);
-        rtcPeerConn.onicecandidate = function(e){
-            e.preventDefault();
-            if(e.candidate){
-                socket.emit('signal', {
-                    "type": "ice candidate",
-                    "message": JSON.stringify({
-                        'candidate': e.candidate
-                    }),
-                    "room": SIGNAL_ROOM
-                });
-            }
-            console.log("completed that ice canditate....");
-        }
-
-        rtcPeerConn.onnegotiationneeded = function(){
-            console.log("on negotiation called");
-            rtcPeerConn.createOffer(sendLocalDesc, logError);
-        };
-
-        rtcPeerConn.onaddstream = function(e){
-            console.log("going to add their stream");
-            userTwoVoice.src = URL.createObjectURL(e.stream);
-        };
-        
-        navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-
-        navigator.getUserMedia({
-            video: false,
-            audio: true
-        }, function(stream){
-            console.log("going to display my stream...");
-            userOneVoice.src = URL.createObjectURL(stream);
-            rtcPeerConn.addStream(stream);
-        }, logError);
-    };
-
-
-
-     function sendLocalDesc (desc) {
-        rtcPeerConn.setLocalDescription(desc, function(){
-            console.log("sending local description");
-            socket.emit("signal", {
-                "type": "SDP",
-                "message": JSON.stringify({
-                    'sdp': rtcPeerConn.localDescription
-                }),
-                "room": SIGNAL_ROOM
-            });
-        }, logError);
-      };
-
-      function logError(error){
-        console.log(error.name + ": " + error.message);
-      };
-
-      socket.on('annouce', function(data){
-        console.log(data.message);
-      });
-
-      socket.on('message', function(data){
-        console.log(data.author + ": " + data.message);
-      });
-
-
-
-
-
   };
-
-
 
 
   render () {
     return (
-      <Scene >
-      <video id="userOneVoice" autoPlay ></video>
-        <video id="userTwoVoice" autoPlay ></video>
+      <Scene firebase ="
+          apiKey: AIzaSyAQfazO3NrnV3uvNowMXbk5NgKfJpO9mjE;
+          authDomain: web-quickstart-4e078.firebaseapp.com,;
+          databaseURL: https://web-quickstart-4e078.firebaseio.com;
+          storageBucket: web-quickstart-4e078.appspot.com">
+      
       <a-assets>
 
        <a-mixin id="avatar"
@@ -366,14 +240,14 @@ class BoilerplateScene extends Component {
                 scale="1.25 1.25 1.25">
         </Entity>
 
-
-        <a-entity id="head" mixin="avatar"
-              wasd-controls
-              firebase-broadcast="componentsOnce: mixin;
-                                  components: position, rotation"
-              position="0 1.8 5">
-       </a-entity>
-
+        <Entity id="head"
+                mixin="avatar"
+                look-controls
+                wasd-controls
+                position="0 1.8 5"
+                firebase-broadcast="componentsOnce: mixin;
+                                  components: position, rotation">
+        </Entity>
 
         <Placards changeCamView = { this.camViewdif.bind(this) } />
 
@@ -386,9 +260,6 @@ class BoilerplateScene extends Component {
       </Entity>
 
     </Scene>
-
-
-    
 
     );
   }

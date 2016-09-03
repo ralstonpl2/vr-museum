@@ -22,12 +22,12 @@ module.exports = {
   module: {
     loaders: [
       {
-        test: /\.js$/,
-        loader: 'babel-loader',
+        test: /\.jsx?$/,
         query: {
           presets: ['es2015', 'react']
         },
-        exclude: '/node_modules'
+        exclude: /node_modules/,
+        loader: 'babel-loader'
       },
       //This converts our .css into JS
       {
